@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מקשיבים לבטיחות — מנחה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&family=Secular+One&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--or:#FF6B00;--orl:#FF9A3C;--og:rgba(255,107,0,.4);--pm:#9333EA;--pl:#C084FC;--pg:rgba(147,51,234,.4);--dark:#0F0A1A;--pan:#1A0F2E;--pan2:#231540;--gold:#FFD700;--ok:#00CC6A;--err:#FF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',sans-serif;background:var(--dark);color:#fff;direction:rtl;min-height:100vh;overflow-x:hidden}
+h1,h2,.pts-label{font-family:'Secular One',sans-serif}
+#status-bar{display:none;position:fixed;top:0;left:0;right:0;background:var(--pan);border-bottom:2px solid var(--pm);padding:8px 16px;z-index:100;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+#status-bar.show{display:flex}
+.status-info{flex:1;display:flex;gap:16px;align-items:center}
+.status-btns{display:flex;gap:6px}
+.sb-btn{padding:5px 12px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:'Heebo',sans-serif}
+.sb-btn.back{background:var(--pm);color:#fff;display:none}
+.sb-btn.scores{background:var(--pan2);color:var(--gold);border:1px solid var(--gold)}
+.sb-btn.end{background:#333;color:var(--err);border:1px solid var(--err)}
+.sb-btn.reset{background:var(--err);color:#fff}
+.screen{display:none;padding:20px;min-height:100vh}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+#game-screens .screen{padding-top:60px}
+#lobby{gap:20px}
+.lobby-title{text-align:center}
+.lobby-title h1{font-size:2.4rem;color:var(--pl)}
+.lobby-title p{color:#aaa;margin-top:4px}
+.qr-container{background:white;padding:16px;border-radius:16px;box-shadow:0 0 40px var(--pg)}
+.join-url{font-size:13px;color:var(--pl);text-align:center;margin-top:8px;word-break:break-all;max-width:400px}
+.players-box{background:var(--pan);border:1px solid var(--pm);border-radius:16px;padding:16px 20px;width:100%;max-width:500px}
+.players-box h3{color:var(--pl);margin-bottom:10px}
+#player-list{display:flex;flex-wrap:wrap;gap:8px;min-height:40px}
+.player-chip{background:var(--pan2);border:1px solid var(--pm);border-radius:20px;padding:4px 12px;font-size:14px}
+#start-btn{background:linear-gradient(135deg,var(--pm),var(--or));color:#fff;border:none;border-radius:16px;padding:16px 48px;font-size:1.3rem;font-family:'Secular One',sans-serif;cursor:pointer;transition:transform .2s;box-shadow:0 4px 20px var(--og)}
+#start-btn:hover{transform:scale(1.04)}
+#wheel-screen{flex-direction:row;gap:24px;flex-wrap:wrap;justify-content:center}
+.wheel-area{display:flex;flex-direction:column;align-items:center;gap:16px}
+#wheel-canvas{border-radius:50%;box-shadow:0 0 40px var(--pg);cursor:pointer}
+#spin-btn{background:linear-gradient(135deg,var(--pm),var(--or));color:#fff;border:none;border-radius:12px;padding:12px 32px;font-size:1.1rem;font-family:'Secular One',sans-serif;cursor:pointer}
+#spin-btn:disabled{opacity:.5;cursor:not-allowed}
+#board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:600px}
+.board-cat{background:var(--pm);border-radius:10px;padding:10px 6px;text-align:center;font-size:12px;font-weight:700;line-height:1.3}
+.board-cell{background:var(--pan);border:2px solid var(--pan2);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;font-family:'Secular One',sans-serif;font-size:1.2rem;color:var(--gold)}
+.board-cell:hover:not(.used):not(.current){background:#FFD70020;border-color:var(--gold);transform:scale(1.05)}
+.board-cell.used{background:var(--pan2);color:#555;cursor:default;border-color:#333;font-size:1rem}
+.board-cell.current{border-color:var(--or);animation:pulse-border 1s infinite}
+@keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 var(--og)}50%{box-shadow:0 0 0 6px var(--og)}}
+#q-screen{gap:14px;max-width:900px;width:100%}
+.q-top{display:flex;gap:10px;align-items:center;width:100%}
+.q-badge{padding:6px 14px;border-radius:20px;font-weight:700;font-size:14px}
+.q-badge.cat{background:var(--pm)}
+.q-badge.pts{background:var(--og);border:1px solid var(--or);color:var(--gold);font-family:'Secular One';font-size:16px}
+#q-timer{margin-right:auto;font-family:'Secular One',sans-serif;font-size:2.4rem;color:var(--gold);min-width:60px;text-align:center}
+#q-timer.urgent{color:var(--err);animation:blink .5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.q-progress{width:100%;height:6px;background:#333;border-radius:3px;overflow:hidden}
+.q-progress-bar{height:100%;background:linear-gradient(90deg,var(--pm),var(--or));transition:width .3s}
+.q-progress-label{font-size:12px;color:#888;text-align:center}
+#q-text{font-size:1.4rem;font-weight:700;text-align:center;line-height:1.5;width:100%}
+#q-img{max-width:100%;max-height:240px;border-radius:12px;object-fit:cover;display:none}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.opt-btn{background:var(--pan);border:2px solid var(--pan2);border-radius:12px;padding:14px 16px;text-align:right;cursor:default;font-family:'Heebo',sans-serif;font-size:1rem;color:#fff;transition:all .2s}
+.opt-btn.correct{background:#00CC6A20;border-color:var(--ok);color:var(--ok);font-weight:700}
+.opt-btn.wrong{background:#FF444420;border-color:var(--err);color:var(--err)}
+#answer-count{font-size:14px;color:#aaa;text-align:center}
+#reveal-btn{background:linear-gradient(135deg,var(--ok),#009955);color:#fff;border:none;border-radius:14px;padding:14px 36px;font-size:1.1rem;font-family:'Secular One',sans-serif;cursor:pointer;width:100%}
+#reveal-btn.pulse{animation:pulse-btn 1s infinite}
+@keyframes pulse-btn{0%,100%{box-shadow:0 0 0 0 rgba(0,204,106,.4)}50%{box-shadow:0 0 0 12px rgba(0,204,106,0)}}
+.q-expl{display:none;background:var(--pan);border-right:4px solid var(--ok);padding:12px 16px;border-radius:10px;font-size:14px;color:#ccc;width:100%}
+.q-dist{width:100%;display:none}
+.dist-bar-wrap{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+.dist-bar{height:18px;border-radius:4px;transition:width .6s;min-width:4px}
+#next-btn{background:linear-gradient(135deg,var(--pm),var(--or));color:#fff;border:none;border-radius:14px;padding:14px 36px;font-size:1.1rem;font-family:'Secular One',sans-serif;cursor:pointer;display:none;width:100%}
+#scores-screen{gap:12px;max-width:500px;width:100%}
+#scores-screen h2{font-size:1.8rem;color:var(--gold)}
+#scores-list{width:100%;display:flex;flex-direction:column;gap:8px}
+.score-row{background:var(--pan);border:1px solid var(--pan2);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.score-rank{font-family:'Secular One',sans-serif;font-size:1.3rem;color:var(--gold);min-width:30px}
+.score-name{flex:1;font-weight:700}
+.score-pts{font-family:'Secular One',sans-serif;font-size:1.2rem;color:var(--or)}
+#continue-btn{background:linear-gradient(135deg,var(--pm),var(--or));color:#fff;border:none;border-radius:14px;padding:14px 36px;font-size:1.1rem;font-family:'Secular One',sans-serif;cursor:pointer;width:100%}
+#end-screen{gap:16px;max-width:500px;width:100%;text-align:center}
+#end-screen h2{font-size:2rem;color:var(--gold)}
+.winner-card{background:var(--pan);border:2px solid var(--gold);border-radius:20px;padding:24px 32px;text-align:center;width:100%;box-shadow:0 0 40px rgba(255,215,0,.3)}
+.winner-emoji{font-size:3rem}
+.winner-name{font-size:1.6rem;font-weight:800;margin:8px 0}
+.winner-pts{font-family:'Secular One',sans-serif;font-size:2rem;color:var(--gold)}
+#scores-list-end{width:100%;display:flex;flex-direction:column;gap:6px}
+#reset-end-btn{background:var(--pm);color:#fff;border:none;border-radius:12px;padding:12px 32px;font-size:1rem;cursor:pointer;width:100%}
+</style>
+</head>
+<body>
+
+<div id="status-bar">
+  <div class="status-info">
+    <span id="sb-players">שחקנים: 0</span>
+    <span id="sb-q">שאלה 0/16</span>
+    <span id="sb-leader">🥇 —</span>
+  </div>
+  <div class="status-btns">
+    <button class="sb-btn back" id="sb-back" onclick="window.backToBoard()">📋 חזור ללוח</button>
+    <button class="sb-btn scores" onclick="window.showScores()">📊 ניקוד</button>
+    <button class="sb-btn end" onclick="window.endEarly()">🏁 סיים</button>
+    <button class="sb-btn reset" onclick="window.resetGame()">🗑️</button>
+  </div>
+</div>
+
+<div id="lobby" class="screen active">
+  <div class="lobby-title">
+    <h1>🎧 מקשיבים לבטיחות</h1>
+    <p>HB Consulting — משחק מסכם</p>
+  </div>
+  <div class="qr-container"><div id="qr-code"></div></div>
+  <div class="join-url" id="join-url"></div>
+  <div class="players-box">
+    <h3>שחקנים שהצטרפו (<span id="player-count">0</span>)</h3>
+    <div id="player-list"><span style="color:#555">ממתין לשחקנים...</span></div>
+  </div>
+  <button id="start-btn" onclick="window.startGame()">▶ התחל משחק</button>
+</div>
+
+<div id="game-screens">
+  <div id="wheel-screen" class="screen">
+    <div class="wheel-area">
+      <canvas id="wheel-canvas" width="420" height="420"></canvas>
+      <button id="spin-btn" onclick="window.spinWheel()">🎯 סובב גלגל</button>
+    </div>
+    <div id="board"></div>
+  </div>
+
+  <div id="q-screen" class="screen">
+    <div class="q-top">
+      <span class="q-badge cat" id="q-cat-badge"></span>
+      <span class="q-badge pts" id="q-pts-badge"></span>
+      <div id="q-timer">30</div>
+    </div>
+    <div class="q-progress"><div class="q-progress-bar" id="q-progress-bar" style="width:0%"></div></div>
+    <div class="q-progress-label" id="q-progress-label">שאלה 0 מתוך 16</div>
+    <div id="q-text"></div>
+    <img id="q-img" src="" alt="">
+    <div class="q-opts" id="q-opts"></div>
+    <div id="answer-count">0 ענו</div>
+    <div class="q-dist" id="q-dist"></div>
+    <div class="q-expl" id="q-expl"></div>
+    <button id="reveal-btn" onclick="window.revealAnswer()">✅ חשוף תשובה</button>
+    <button id="next-btn" onclick="window.nextQuestion()">← הבא | המשך למשחק</button>
+  </div>
+
+  <div id="scores-screen" class="screen">
+    <h2>📊 ניקוד</h2>
+    <div id="scores-list"></div>
+    <button id="continue-btn" onclick="window.continueGame()">← המשך משחק</button>
+  </div>
+
+  <div id="end-screen" class="screen">
+    <h2>🏆 סיום המשחק!</h2>
+    <div class="winner-card">
+      <div class="winner-emoji" id="winner-emoji">🎉</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="winner-pts" id="winner-pts"></div>
+    </div>
+    <div id="scores-list-end"></div>
+    <button id="reset-end-btn" onclick="window.resetGame()">🔄 משחק חדש</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, remove, update, onValue }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCmLcDXYa0OR0CtTj0A3oPBlcD5C2JaA1E",
+  authDomain: "noise-game-75903.firebaseapp.com",
+  databaseURL: "https://noise-game-75903-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "noise-game-75903",
+  storageBucket: "noise-game-75903.firebasestorage.app",
+  messagingSenderId: "621096210813",
+  appId: "1:621096210813:web:2e9c686a948517e9e1bc14"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const SESSION = 'game_' + Math.random().toString(36).slice(2, 7);
+
+const CATS = ['🔊 הרעש והנזק','📏 מספרים ומדידות','🛡️ הגנה ומניעה','👂 שימוש נכון'];
+const WHEEL_COLORS = ['#9333EA','#FF6B00','#0077CC','#00995A'];
+const B = 'https://raw.githubusercontent.com/hbconsulting00-sketch/noise-game/main/';
+const QUESTIONS = [
+  {cat:'🔊 הרעש והנזק',pts:100,type:'tf',text:'רעש הוא מטרד גרידא — הוא לא גורם לנזק פיזי ממשי לגוף',opts:['✅ אמת','❌ שקר'],correct:1,img:B+'q01-noise-energy.png',expl:'רעש הוא אנרגיה פיזיקלית שמפעילה כוח מכני מתמשך על תאי השמיעה'},
+  {cat:'🔊 הרעש והנזק',pts:200,type:'mc',text:'מה עושים תאי השערה (Hair Cells) באוזן הפנימית?',opts:['מייצרים שיער באוזן','ממירים קול לאות חשמלי','מנקים את תעלת האוזן','מאזנים לחץ אוויר'],correct:1,img:B+'q02-hair-cells.png',expl:'האוזן הפנימית ממירה אנרגיה אקוסטית לאותות חשמליים דרך עשרות אלפי תאי שערה'},
+  {cat:'🔊 הרעש והנזק',pts:300,type:'mc',text:'מה קורה לתאי שערה (Hair Cells) שנהרסו מחשיפה לרעש חזק?',opts:['מתחדשים תוך שבועות','מתחדשים לאחר מנוחה','מחלימים חלקית','לא מתחדשים לעולם'],correct:3,img:B+'q03-damaged-cells.png',expl:'הנזק לתאי שערה הוא בלתי הפיך — הם לא מתחדשים, בניגוד לתאים אחרים בגוף'},
+  {cat:'🔊 הרעש והנזק',pts:400,type:'mc',text:'למה נזק מרעש דומה לנזק מהשמש?',opts:['שניהם כואבים מיד','שניהם גורמים לאדמומיות','שניהם לא מורגשים בזמן אמת','שניהם ניתנים לריפוי'],correct:2,img:B+'q04-silent-damage.png',expl:'כמו שיזוף — לא מרגישים את הנזק ברגע שהוא קורה, אלא רק לאחר שנים'},
+  {cat:'📏 מספרים ומדידות',pts:100,type:'tf',text:'גבול החשיפה המותר לרעש לאורך 8 שעות עבודה הוא 85 דציבל',opts:['✅ אמת','❌ שקר'],correct:0,img:B+'q05-85db-limit.png',expl:'85 dB הוא הקו האדום החוקי לחשיפה רצופה של 8 שעות עבודה'},
+  {cat:'📏 מספרים ומדידות',pts:200,type:'mc',text:'כמה שעות מותר להיחשף לרעש של 88 דציבל?',opts:['8 שעות','6 שעות','4 שעות','2 שעות'],correct:2,img:B+'q06-88db-4hours.png',expl:"כל עלייה של 3 דציבל מחצה את זמן החשיפה: 85→8שע', 88→4שע'"},
+  {cat:'📏 מספרים ומדידות',pts:300,type:'mc',text:'כל עלייה של כמה דציבל מכפילה את עוצמת הרעש?',opts:['1 דציבל','3 דציבל','5 דציבל','10 דציבל'],correct:1,img:B+'q07-3db-rule.png',expl:'כל 3 דציבל = הכפלת עוצמת הרעש = חציית זמן החשיפה המותר'},
+  {cat:'📏 מספרים ומדידות',pts:400,type:'mc',text:'כמה שעות מותר להיחשף לרעש של 91 דציבל?',opts:['4 שעות','3 שעות','2 שעות','שעה אחת'],correct:2,img:B+'q08-91db-2hours.png',expl:"85→8שע', +3dB→88→4שע', +3dB→91→2שע'"},
+  {cat:'🛡️ הגנה ומניעה',pts:100,type:'tf',text:'ציוד מגן אישי (PPE) כמו אטמים הוא קו ההגנה הראשון והעדיף מרעש',opts:['✅ אמת','❌ שקר'],correct:1,img:B+'q09-hierarchy-control.png',expl:'PPE הוא קו ההגנה האחרון — לפניו הפתרון ההנדסי ואחריו הארגוני'},
+  {cat:'🛡️ הגנה ומניעה',pts:200,type:'mc',text:'מה הוא פתרון הנדסי לבעיית רעש?',opts:['לבישת אטמים','קיצור זמן בסביבה רועשת','טיפול במקור הרעש עצמו','העברת עובדים למשמרת לילה'],correct:2,img:B+'q10-engineering-control.png',expl:'פתרון הנדסי = התקנת חיפוי אקוסטי, בחירת מכונה שקטה, הרחקת מקור הרעש'},
+  {cat:'🛡️ הגנה ומניעה',pts:300,type:'mc',text:'מה מייחד פתרון ארגוני לרעש?',opts:['שינוי חומרי ציוד','החלפת מכונות','ניהול זמן חשיפת העובד','שימוש באטמים'],correct:2,img:B+'q11-admin-control.png',expl:'פתרון ארגוני = שהייה קצרה בסביבה רועשת + צמצום זמן החשיפה למינימום'},
+  {cat:'🛡️ הגנה ומניעה',pts:400,type:'mc',text:'מה הסימן הפשוט ביותר בשטח שאתה בסביבת רעש מזיקה?',opts:['תחושת כאב באוזן','צריך לצעוק כדי שישמעו ממטר','קשה לשמוע מוזיקה','ראש כבד'],correct:1,img:B+'q12-shout-test.png',expl:'אם צריך לצעוק במרחק מטר — הרעש מעל הגבול המזיק. אל תחכו למכשיר מדידה'},
+  {cat:'👂 שימוש נכון',pts:100,type:'tf',text:'מותר להניח אטם רק בפתח האוזן — אין צורך להחדיר אותו פנימה עמוק',opts:['✅ אמת','❌ שקר'],correct:1,img:B+'q13-earplug-wrong.png',expl:'אטם שאינו מוחדר עמוק לא חוסם את מעבר הקול — ההגנה לא אפקטיבית'},
+  {cat:'👂 שימוש נכון',pts:200,type:'mc',text:'מה השלב הראשון בהכנסת אטם לאוזן?',opts:['להחדיר מיד','לפתוח את האוזן','לכווץ לצילינדר דק (Squish)','לרטב את האטם'],correct:2,img:B+'q14-earplug-squish.png',expl:'שלב 1: כיווץ (Squish). שלב 2: החדרה עמוקה (Insert). שלב 3: המתנה להתרחבות (Expand)'},
+  {cat:'👂 שימוש נכון',pts:300,type:'mc',text:'למה אסור לאטמות אוזניים עם רווח מתחת למשקפיים?',opts:['לא נוח','פוגע במשקפיים','הרווח מאפשר לאנרגיית הקול לעקוף את ההגנה','כי הכללים אוסרים'],correct:2,img:B+'q15-earmuff-glasses.png',expl:'אטמות עם חורים = אפוד מגן עם חורים — האנרגיה פשוט עוקפת את המגן'},
+  {cat:'👂 שימוש נכון',pts:400,type:'mc',text:'מה הסימן הראשון לכך שעברת את גבול החשיפה המותרת לרעש?',opts:['כאב חד באוזן','קשיי שמיעה מיידיים','טינטון (צפצוף) לאחר יום עבודה','סחרחורת'],correct:2,img:B+'q16-tinnitus.png',expl:'טינטון בסוף יום עבודה = "היום עברתי את הגבול!" — חובה לא לפספס בדיקת שמיעה שנתית'}
+];
+
+let players={}, usedQs=new Set(), currentQ=null, playerAnswers={};
+let timerInt=null, timeLeft=30, revealed=false, qCount=0;
+let wheelAngle=0, spinning=false;
+
+const playerUrl = `https://hbconsulting00-sketch.github.io/noise-game/player.html?s=${SESSION}`;
+document.getElementById('join-url').textContent = playerUrl;
+new QRCode(document.getElementById('qr-code'),{text:playerUrl,width:160,height:160,correctLevel:QRCode.CorrectLevel.H});
+
+onValue(ref(db,`${SESSION}/players`), snap=>{
+  players = snap.val()||{};
+  const count = Object.keys(players).length;
+  document.getElementById('player-count').textContent = count;
+  const list = document.getElementById('player-list');
+  if(count===0){list.innerHTML='<span style="color:#555">ממתין לשחקנים...</span>';return;}
+  list.innerHTML = Object.values(players).map(p=>`<span class="player-chip">${p.emoji} ${p.name}</span>`).join('');
+  updateStatusBar();
+});
+
+onValue(ref(db,`${SESSION}/answers`), snap=>{
+  playerAnswers = snap.val()||{};
+  const count = Object.keys(playerAnswers).length;
+  const total = Object.keys(players).length;
+  document.getElementById('answer-count').textContent = `${count} מתוך ${total} ענו`;
+  if(count>0 && !revealed) document.getElementById('reveal-btn').classList.add('pulse');
+});
+
+// ── Wheel ──
+function drawWheel(angle){
+  const cv=document.getElementById('wheel-canvas'), ctx=cv.getContext('2d');
+  const cx=210,cy=210,r=200,slice=Math.PI*2/4;
+  ctx.clearRect(0,0,420,420);
+  CATS.forEach((cat,i)=>{
+    const s=angle+i*slice;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,s,s+slice);
+    ctx.fillStyle=WHEEL_COLORS[i]; ctx.fill();
+    ctx.strokeStyle='#0F0A1A'; ctx.lineWidth=3; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(s+slice/2);
+    ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.font='bold 14px Heebo';
+    const txt=cat.replace(/^\S+\s/,'');
+    const words=txt.split(' ');
+    words.forEach((w,wi)=>ctx.fillText(w,r-12,wi*18-(words.length-1)*9));
+    ctx.restore();
+  });
+  ctx.beginPath(); ctx.moveTo(cx-12,8); ctx.lineTo(cx+12,8); ctx.lineTo(cx,36);
+  ctx.fillStyle='#FFD700'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2);
+  ctx.fillStyle='#0F0A1A'; ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='20px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🎧',cx,cy);
+}
+drawWheel(0);
+
+function spinWheel(){
+  if(spinning) return;
+  spinning=true;
+  document.getElementById('spin-btn').disabled=true;
+  const totalSpin=Math.PI*2*(5+Math.floor(Math.random()*5))+Math.random()*Math.PI*2;
+  const dur=3500, start=performance.now(), sa=wheelAngle;
+  function frame(now){
+    const p=Math.min((now-start)/dur,1), ease=1-Math.pow(1-p,3);
+    wheelAngle=sa+totalSpin*ease; drawWheel(wheelAngle);
+    if(p<1){requestAnimationFrame(frame);return;}
+    spinning=false;
+    const fa=((wheelAngle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+    const catIdx=Math.floor(((Math.PI*1.5-fa+Math.PI*2)%(Math.PI*2))/(Math.PI*2/4))%4;
+    setTimeout(()=>pickFromCategory(CATS[catIdx]),800);
+  }
+  requestAnimationFrame(frame);
+}
+
+function pickFromCategory(cat){
+  const avail=QUESTIONS.filter(q=>q.cat===cat&&!usedQs.has(q.cat+q.pts));
+  if(!avail.length){document.getElementById('spin-btn').disabled=false;return;}
+  const q=avail[0];
+  pickQuestion(q.cat,q.pts);
+}
+
+// ── Board ──
+function buildBoard(){
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  CATS.forEach(cat=>{
+    const h=document.createElement('div');
+    h.className='board-cat'; h.textContent=cat; board.appendChild(h);
+  });
+  [100,200,300,400].forEach(pts=>{
+    CATS.forEach(cat=>{
+      const key=cat+pts, cell=document.createElement('div');
+      const used=usedQs.has(key);
+      const cur=currentQ&&currentQ.cat===cat&&currentQ.pts===pts;
+      cell.className='board-cell'+(used?' used':'')+(cur?' current':'');
+      cell.textContent=used?'✓':pts;
+      if(!used) cell.onclick=()=>window.pickQuestion(cat,pts);
+      board.appendChild(cell);
+    });
+  });
+}
+
+function pickQuestion(cat,pts){
+  const q=QUESTIONS.find(q=>q.cat===cat&&q.pts===pts);
+  if(!q) return;
+  currentQ={...q,qId:Date.now()};
+  playerAnswers={}; revealed=false; qCount++;
+  usedQs.add(cat+pts);
+  set(ref(db,`${SESSION}/answers`),null);
+  set(ref(db,`${SESSION}/correct`),null);
+  set(ref(db,`${SESSION}/currentQ`),currentQ);
+  set(ref(db,`${SESSION}/gameState`),'question');
+  showScreen('q-screen');
+  document.getElementById('sb-back').style.display='inline-block';
+  renderQ(q);
+}
+
+// ── Question ──
+function renderQ(q){
+  document.getElementById('q-cat-badge').textContent=q.cat;
+  document.getElementById('q-pts-badge').textContent=q.pts+" נק'";
+  document.getElementById('q-text').textContent=q.text;
+  document.getElementById('q-progress-label').textContent=`שאלה ${qCount} מתוך 16`;
+  document.getElementById('q-progress-bar').style.width=`${(qCount/16)*100}%`;
+  const img=document.getElementById('q-img');
+  img.style.display=q.img?'block':'none'; if(q.img) img.src=q.img;
+  const opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='opt-btn'; b.textContent=opt; opts.appendChild(b);
+  });
+  document.getElementById('answer-count').textContent='0 ענו';
+  document.getElementById('q-dist').style.display='none';
+  document.getElementById('q-expl').style.display='none';
+  document.getElementById('reveal-btn').style.display='block';
+  document.getElementById('reveal-btn').classList.remove('pulse');
+  document.getElementById('next-btn').style.display='none';
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInt); timeLeft=30;
+  const el=document.getElementById('q-timer');
+  el.textContent=timeLeft; el.classList.remove('urgent');
+  timerInt=setInterval(()=>{
+    timeLeft--;
+    el.textContent=timeLeft;
+    if(timeLeft<=5) el.classList.add('urgent');
+    if(timeLeft<=0){clearInterval(timerInt);el.textContent='⏰';}
+  },1000);
+}
+
+function revealAnswer(){
+  clearInterval(timerInt); revealed=true;
+  const q=currentQ;
+  set(ref(db,`${SESSION}/correct`),q.correct);
+  set(ref(db,`${SESSION}/gameState`),'reveal');
+  document.getElementById('reveal-btn').style.display='none';
+  document.getElementById('next-btn').style.display='block';
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>b.classList.add(i===q.correct?'correct':'wrong'));
+  const expl=document.getElementById('q-expl');
+  expl.textContent='💡 '+q.expl; expl.style.display='block';
+  const counts=q.opts.map((_,i)=>Object.values(playerAnswers).filter(a=>a.answer===i).length);
+  const total=Math.max(Object.keys(playerAnswers).length,1);
+  const dist=document.getElementById('q-dist');
+  dist.innerHTML=q.opts.map((opt,i)=>{
+    const pct=Math.round(counts[i]/total*100);
+    return`<div class="dist-bar-wrap"><span style="min-width:140px;font-size:12px">${opt}</span><div class="dist-bar" style="width:${Math.max(pct,2)}%;background:${i===q.correct?'var(--ok)':'var(--pm)'}"></div><span>${counts[i]}</span></div>`;
+  }).join('');
+  dist.style.display='block';
+  const updates={};
+  Object.entries(playerAnswers).forEach(([id,data])=>{
+    if(data.answer===q.correct){
+      const bonus=Math.floor(Math.max(0,(1-data.elapsed/30000))*q.pts*0.5);
+      updates[`${SESSION}/players/${id}/score`]=(players[id]?.score||0)+q.pts+bonus;
+    }
+  });
+  if(Object.keys(updates).length) update(ref(db,'/'),updates);
+  updateStatusBar();
+}
+
+function nextQuestion(){
+  set(ref(db,`${SESSION}/gameState`),'wheel');
+  document.getElementById('sb-back').style.display='none';
+  currentQ=null;
+  if(usedQs.size>=16){endGame();return;}
+  showScreen('wheel-screen'); buildBoard();
+  document.getElementById('spin-btn').disabled=false;
+}
+
+function backToBoard(){
+  clearInterval(timerInt);
+  set(ref(db,`${SESSION}/gameState`),'wheel');
+  set(ref(db,`${SESSION}/currentQ`),null);
+  document.getElementById('sb-back').style.display='none';
+  currentQ=null;
+  showScreen('wheel-screen'); buildBoard();
+  document.getElementById('spin-btn').disabled=false;
+}
+
+function showScores(){
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('scores-list').innerHTML=sorted.map(([,p],i)=>
+    `<div class="score-row"><span class="score-rank">${medals[i]||(i+1)}</span><span>${p.emoji}</span><span class="score-name">${p.name}</span><span class="score-pts">${p.score||0}</span></div>`
+  ).join('');
+  showScreen('scores-screen');
+}
+
+function continueGame(){
+  if(usedQs.size>=16){endGame();return;}
+  showScreen('wheel-screen'); buildBoard();
+}
+
+function endGame(){
+  set(ref(db,`${SESSION}/gameState`),'end');
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  if(sorted.length){
+    const[,w]=sorted[0];
+    document.getElementById('winner-emoji').textContent=w.emoji;
+    document.getElementById('winner-name').textContent=w.name;
+    document.getElementById('winner-pts').textContent=(w.score||0)+' נקודות';
+  }
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('scores-list-end').innerHTML=sorted.map(([,p],i)=>
+    `<div class="score-row"><span class="score-rank">${medals[i]||(i+1)}</span><span>${p.emoji}</span><span class="score-name">${p.name}</span><span class="score-pts">${p.score||0}</span></div>`
+  ).join('');
+  showScreen('end-screen');
+}
+
+function endEarly(){if(!confirm('לסיים את המשחק עכשיו?'))return;endGame();}
+
+function startGame(){
+  set(ref(db,`${SESSION}/gameState`),'wheel');
+  document.getElementById('status-bar').classList.add('show');
+  showScreen('wheel-screen'); buildBoard(); updateStatusBar();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateStatusBar(){
+  document.getElementById('sb-players').textContent=`שחקנים: ${Object.keys(players).length}`;
+  document.getElementById('sb-q').textContent=`שאלה ${usedQs.size}/16`;
+  const sorted=Object.entries(players).sort((a,b)=>(b[1].score||0)-(a[1].score||0));
+  if(sorted.length){const[,t]=sorted[0];document.getElementById('sb-leader').textContent=`🥇 ${t.emoji} ${t.name} ${t.score||0}`;}
+}
+
+function resetGame(){
+  if(!confirm('לאפס? כל הנתונים יימחקו.'))return;
+  remove(ref(db,SESSION)).then(()=>location.reload());
+}
+
+window.startGame=startGame; window.resetGame=resetGame; window.spinWheel=spinWheel;
+window.pickQuestion=pickQuestion; window.revealAnswer=revealAnswer; window.nextQuestion=nextQuestion;
+window.showScores=showScores; window.continueGame=continueGame; window.endEarly=endEarly;
+window.backToBoard=backToBoard;
+</script>
+</body>
+</html>
